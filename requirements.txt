@@ -1,1 +1,1 @@
-st-aggrid
+streamlit-aggrid
