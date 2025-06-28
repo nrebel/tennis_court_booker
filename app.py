@@ -129,7 +129,7 @@ def login():
         else:
             st.session_state.user = user[0]
             st.session_state.color = user[4]
-            st.experimental_rerun()
+            st.rerun()
 
 
 # ------------------ Booking GUI ------------------
