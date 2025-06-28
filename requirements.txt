@@ -1,4 +1,3 @@
-sreamlit==1.25.0
 pandas
 numpy
 st-aggrid
