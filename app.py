@@ -81,12 +81,15 @@ def activate_user():
     if st.button("Aktivieren"):
         c.execute("SELECT activation_code FROM users WHERE username = ?", (username,))
         result = c.fetchone()
+
         if result and result[0] == code:
-            c.execute("UPDATE users SET activated = 1 WHERE username = ?", (username,))
+            # Direkt aktivieren UND freischalten
+            c.execute("UPDATE users SET activated = 1, approved = 1 WHERE username = ?", (username,))
             conn.commit()
-            st.success("Code korrekt! Dein Konto wurde aktiviert. Bitte warte auf Freigabe durch den Admin.")
+            st.success("✅ Aktivierung erfolgreich! Du kannst dich jetzt einloggen.")
         else:
-            st.error("Benutzername oder Code ungültig.")
+            st.error("❌ Benutzername oder Aktivierungscode ist falsch.")
+
 
 
 # ------------------ Admin ------------------
@@ -96,18 +99,19 @@ def admin():
     if pw != st.secrets.get("admin_password"):
         st.stop()
 
-    c.execute("SELECT username, reason, activation_code, activated FROM users WHERE approved = 0")
+# Nur Benutzer zeigen, die noch nicht aktiviert sind
+    c.execute("SELECT username, reason, activation_code, activated FROM users WHERE approved = 0 AND activated = 0")
     pending = c.fetchall()
 
     for u in pending:
         username, reason, code, activated = u
         st.markdown(f"**{username}** — `{reason or 'Keine Begründung'}`")
         st.text(f"Aktivierungscode: {code} — {'✅ aktiviert' if activated else '❌ nicht aktiviert'}")
-        if activated:
+        ''' if activated:
             if st.button(f"Freigeben: {username}"):
                 c.execute("UPDATE users SET approved = 1 WHERE username = ?", (username,))
                 conn.commit()
-                st.success(f"{username} freigeschaltet")
+                st.success(f"{username} freigeschaltet") '''
 
 
 # ------------------ Login ------------------
@@ -230,4 +234,3 @@ elif choice == "Admin":
     admin()
 else:
     login()
-
