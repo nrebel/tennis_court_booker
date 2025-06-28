@@ -129,14 +129,27 @@ def login():
         else:
             st.session_state.user = user[0]
             st.session_state.color = user[4]
-            st.experimental_rerun()
+            st.rerun()
 
 
 # ------------------ Booking GUI ------------------
-def booking():
-    import sqlite3
-    from datetime import datetime, timedelta
+from datetime import date, timedelta
 
+def booking():
+    st.subheader(f"Willkommen {st.session_state.user}")
+
+    # 📅 Date input
+    date_today = st.date_input("Datum wählen", value=datetime.today())
+
+    # 📌 Get current calendar week range (Mon–Sun)
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())        # Monday
+    week_end = week_start + timedelta(days=6)                   # Sunday
+
+    if not (week_start <= date_today <= week_end):
+        st.warning(f"Buchungen sind nur für diese Woche möglich ({week_start.strftime('%d.%m.%Y')} – {week_end.strftime('%d.%m.%Y')}).")
+        return
+    
     st.title("🎾 Tennisplatzbuchung – Tägliche Übersicht")
 
     user = st.session_state.get("user", None)
@@ -146,8 +159,6 @@ def booking():
 
     conn = sqlite3.connect("data/tennis.db", check_same_thread=False)
     c = conn.cursor()
-
-    date_today = st.date_input("Datum wählen", value=datetime.today())
 
     # Zeitbereich wählbar
     col1, col2 = st.columns(2)
