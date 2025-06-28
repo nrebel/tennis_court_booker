@@ -107,11 +107,6 @@ def admin():
         username, reason, code, activated = u
         st.markdown(f"**{username}** — `{reason or 'Keine Begründung'}`")
         st.text(f"Aktivierungscode: {code} — {'✅ aktiviert' if activated else '❌ nicht aktiviert'}")
-        ''' if activated:
-            if st.button(f"Freigeben: {username}"):
-                c.execute("UPDATE users SET approved = 1 WHERE username = ?", (username,))
-                conn.commit()
-                st.success(f"{username} freigeschaltet") '''
 
 
 # ------------------ Login ------------------
