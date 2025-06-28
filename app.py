@@ -219,14 +219,16 @@ def overview():
     from datetime import datetime, timedelta
     import streamlit as st
 
-    st.markdown("## 📊 Platzübersicht für heute")
+    st.markdown("## 📊 Platzübersicht")
+
+    # 📅 Datumsauswahl
+    selected_date = st.date_input("Datum auswählen", value=datetime.today().date())
 
     # Verbindung zur DB
     conn = sqlite3.connect("data/tennis.db", check_same_thread=False)
     c = conn.cursor()
 
     # Parameter
-    date_today = datetime.today().date()
     courts = list(range(1, 10))
     start_time = datetime.strptime("07:00", "%H:%M")
     end_time = datetime.strptime("21:00", "%H:%M")
@@ -241,7 +243,7 @@ def overview():
     for time in times:
         for court in courts:
             c.execute("SELECT username, locked FROM bookings WHERE date = ? AND hour = ? AND court = ?",
-                      (str(date_today), time, court))
+                      (str(selected_date), time, court))
             entries = c.fetchall()
             bookings_map[(time, court)] = [u for u, _ in entries]
             locked_map[(time, court)] = any(l == 1 for _, l in entries)
@@ -315,6 +317,7 @@ def overview():
 
     # HTML anzeigen
     st.markdown(html, unsafe_allow_html=True)
+
 
 # ------------------ Main App ------------------
 st.title("🎾 Tennisplatz-Buchung")
