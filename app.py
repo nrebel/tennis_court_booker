@@ -213,10 +213,115 @@ def booking():
 
     conn.close()
 
+# ------------------ Overview page ------------------
+def overview():
+    import sqlite3
+    from datetime import datetime, timedelta
+    import streamlit as st
+
+    st.markdown("## 📊 Platzübersicht")
+
+    # 📅 Datumsauswahl
+    selected_date = st.date_input("Datum auswählen", value=datetime.today().date())
+
+    # Verbindung zur DB
+    conn = sqlite3.connect("data/tennis.db", check_same_thread=False)
+    c = conn.cursor()
+
+    # Parameter
+    courts = list(range(1, 10))
+    start_time = datetime.strptime("07:00", "%H:%M")
+    end_time = datetime.strptime("21:00", "%H:%M")
+    time_slots = [start_time + timedelta(minutes=30 * i)
+                  for i in range(int((end_time - start_time).seconds / 1800) + 1)]
+    times = [t.strftime("%H:%M") for t in time_slots]
+
+    # Buchungen abrufen
+    bookings_map = {(t, court): [] for t in times for court in courts}
+    locked_map = {}
+
+    for time in times:
+        for court in courts:
+            c.execute("SELECT username, locked FROM bookings WHERE date = ? AND hour = ? AND court = ?",
+                      (str(selected_date), time, court))
+            entries = c.fetchall()
+            bookings_map[(time, court)] = [u for u, _ in entries]
+            locked_map[(time, court)] = any(l == 1 for _, l in entries)
+
+    conn.close()
+
+    # HTML-Tabelle aufbauen
+    html = """
+    <style>
+        .schedule-table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+            font-size: 12px;
+        }
+        .schedule-table th, .schedule-table td {
+            border: 1px solid #888;
+            text-align: center;
+            padding: 3px;
+            height: 30px;
+            overflow: hidden;
+        }
+        .time-col {
+            background-color: #004080;
+            color: white;
+            font-weight: bold;
+        }
+        .court-header {
+            background-color: #002040;
+            color: white;
+            font-weight: bold;
+        }
+        .booked {
+            background-color: red;
+            color: white;
+            font-weight: bold;
+        }
+        .locked {
+            background-color: black;
+            color: white;
+        }
+    </style>
+    <table class="schedule-table">
+        <tr>
+            <th class="time-col">Zeit</th>
+    """
+
+    # Kopfzeile mit Platznummern
+    for court in courts:
+        html += f'<th class="court-header">{court}</th>'
+    html += "</tr>"
+
+    # Zeilen pro Zeit
+    for t in times:
+        html += f'<tr><td class="time-col">{t}</td>'
+        for court in courts:
+            users = bookings_map[(t, court)]
+            locked = locked_map[(t, court)]
+            if users:
+                classes = "booked"
+                if locked:
+                    classes += " locked"
+                label = "<br>".join(users[:2])  # max. 2 Namen anzeigen
+            else:
+                classes = ""
+                label = ""
+            html += f'<td class="{classes}">{label}</td>'
+        html += "</tr>"
+
+    html += "</table>"
+
+    # HTML anzeigen
+    st.markdown(html, unsafe_allow_html=True)
+
 
 # ------------------ Main App ------------------
 st.title("🎾 Tennisplatz-Buchung")
-menu = ["Login", "Registrieren", "Aktivieren", "Admin"]
+menu = ["Login", "Übersicht", "Registrieren", "Aktivieren", "Admin"]
 choice = st.sidebar.selectbox("Navigation", menu)
 
 if "user" in st.session_state:
@@ -227,5 +332,7 @@ elif choice == "Aktivieren":
     activate_user()
 elif choice == "Admin":
     admin()
+elif choice == "Übersicht":
+    overview()
 else:
     login()
