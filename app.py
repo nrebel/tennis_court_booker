@@ -205,12 +205,12 @@ def booking():
                                 if st.button("🔒", key=f"{time}-{court}-lock"):
                                     c.execute("UPDATE bookings SET locked = 1 WHERE date = ? AND hour = ? AND court = ?", (str(date_today), time, court))
                                     conn.commit()
-                                    st.experimental_rerun()
+                                    st.rerun()
                             else:
                                 if st.button("🔓", key=f"{time}-{court}-unlock"):
                                     c.execute("UPDATE bookings SET locked = 0 WHERE date = ? AND hour = ? AND court = ?", (str(date_today), time, court))
                                     conn.commit()
-                                    st.experimental_rerun()
+                                    st.rerun()
                     elif locked:
                         st.markdown("🔒 Gesperrt")
                     elif len(usernames) >= 6:
@@ -220,7 +220,7 @@ def booking():
                             c.execute("INSERT INTO bookings (date, hour, court, username, locked) VALUES (?, ?, ?, ?, ?)",
                                       (str(date_today), time, court, user, 0))
                             conn.commit()
-                            st.experimental_rerun()
+                            st.rerun()
 
     conn.close()
 
