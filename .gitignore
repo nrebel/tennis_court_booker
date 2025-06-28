@@ -1,0 +1,3 @@
+.venv/
+data/tennis.db
+.streamlit/secrets.toml
