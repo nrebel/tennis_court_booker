@@ -143,10 +143,9 @@ def booking():
 
     # 📌 Get current calendar week range (Mon–Sun)
     today = date.today()
-    week_start = today - timedelta(days=today.weekday())        # Monday
     week_end = week_start + timedelta(days=6)                   # Sunday
 
-    if not (week_start <= date_today <= week_end):
+    if not (today <= date_today <= week_end):
         st.warning(f"Buchungen sind nur für diese Woche möglich ({week_start.strftime('%d.%m.%Y')} – {week_end.strftime('%d.%m.%Y')}).")
         return
     
